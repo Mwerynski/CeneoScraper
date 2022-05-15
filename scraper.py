@@ -1,59 +1,50 @@
-import json
 import requests
+import json
 from bs4 import BeautifulSoup
 
-# url = "https://www.ceneo.pl/95365253#tab=reviews"
-url = "https://www.ceneo.pl/39562616#tab=reviews"
-response = requests.get(url)
-
-page_dom = BeautifulSoup(response.text, 'html.parser')
-
-reviews = page_dom.select("div.js_product-review")
-
-all_reviews = []
-
-for review in reviews: 
-    review_id = review["data-entry-id"]
-    author = review.select("span.user-post__author-name").pop(0).text.strip()
+def get_item(ancestor, selector, attribute=None, return_list=False):
     try:
-        recommendation = review.select("span.user-post__author-recomendation > em").pop(0).text
-        recommendation = True if recommendation == "Polecam" else False 
-    except: recommendation = None
-    stars = review.select("span.user-post__score-count").pop(0).text 
-    stars = float(stars.split("/").pop(0).replace(",", "."))
-    content = review.select("div.user-post__text").pop(0).get_text()
-    content = content.replace("\n", " ").replace("  ", " ").strip()
-    publish_date = review.select("span.user-post__published > time:nth-child(1)").pop(0)["datetime"]
-    publish_date = publish_date.split(" ").pop(0)
-    try:
-        purchase_date = review.select("span.user-post__published > time:nth-child(2)").pop(0)["datetime"]
-        purchase_date = purchase_date.split(" ").pop(0)
-    except IndexError: purchase_date = None
-    useful = review.select("span[id^=votes-yes]").pop(0).text
-    useful = int(useful)
-    useless = review.select("span[id^=votes-no]").pop(0).text
-    useless = int(useless)
+        if return_list:
+            return [item.get_text().strip() for item in ancestor.select(selector)]
+        if attribute:
+            return ancestor.select_one(selector)[attribute]
+        return ancestor.select_one(selector).get_text().strip()
+    except (AttributeError, TypeError):
+        return None
 
-    pros = review.select("div.review-feature__title--positives ~ div.review-feature__item")
-    pros = [item.text.strip() for item in pros]
-    pros = ", ".join(pros)
+selectors = {
+    "author": ["span.user-post__author-name"],
+    "recommendation": ["span.user-post__author-recomendation > em"],
+    "stars": ["span.user-post__score-count"],
+    "content": ["div.user-post__text"],
+    "useful": ["button.vote-yes > span"],
+    "useless": ["button.vote-no > span"],
+    "publish_date": ["span.user-post__published > time:nth-child(1)", "datetime"],
+    "purchase_date": ["span.user-post__published > time:nth-child(2)", "datetime"],
+    "pros": ["div[class$=positives]~ div.review-feature__item", None, True],
+    "cons": ["div[class$=negatives]~ div.review-feature__item", None, True]
+}
 
-    cons = review.select("div.review-feature__title--negatives ~ div.review-feature__item")
-    cons = [item.text.strip() for item in cons]
-    cons = ", ".join(cons)
+product_id = input("Podaj identyfikator produktu: ")
+url = f"https://www.ceneo.pl/{product_id}#tab=reviews"
+all_opinions = []
+while(url):
+    response = requests.get(url)
+    page = BeautifulSoup(response.text, 'html.parser')
+    opinions = page.select("div.js_product-review")
+    for opinion in opinions:
+        
+        single_opinion = {
+            key:get_item(opinion, *value)
+                for key, value in selectors.items()
+        }
+        single_opinion["opinion_id"] = opinion["data-entry-id"]
+        all_opinions.append(single_opinion)
 
-    single_review = {
-        "review_id": review_id,
-        "author": author,
-        "recommendation": recommendation,
-        "stars": stars,
-        "content": content,
-        "publish_date": publish_date, 
-        "purchase_date": purchase_date,
-        "useful": useful,
-        "useless": useless,
-        "pros": pros,
-        "cons": cons
-    }
-    all_reviews.append(single_review)
-print(json.dumps(all_reviews, indent=4, ensure_ascii=False))
+    try:    
+        url = "https://www.ceneo.pl"+get_item(page,"a.pagination__next","href")
+    except TypeError:
+        url = None
+
+with open(f"opinions/{product_id}.json", "w", encoding="UTF-8") as jf:
+    json.dump(all_opinions, jf, indent=4, ensure_ascii=False)
