@@ -26,7 +26,7 @@ selectors = {
 }
 
 product_id = input("Podaj identyfikator produktu: ")
-url = f"https://www.ceneo.pl/{product_id}#tab=reviews"
+url = f"https://www.ceneo.pl/{product_id}#tab=reviews" #Apparently works, gives out an error #connection -> Ports might be blocked on my end, todo: check at home
 all_opinions = []
 while(url):
     response = requests.get(url)
