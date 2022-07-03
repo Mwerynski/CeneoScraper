@@ -1,5 +1,14 @@
 # CeneoWebScraperN11
+## Requirements
+```
+pip install -python
+pip install -flask
+pip install -pandas
+pip install -matplotlib
+pip install -markdown
+pip install -bs4
 
+```
 ## Work Log
 1) pobranie skladowych pojedynczej opinii do niezaleznych zmiennych<br>
 2) zapisanie wszystkich skladowych pojedynczej opinii do obiektu slownika (dictionary)<br>
