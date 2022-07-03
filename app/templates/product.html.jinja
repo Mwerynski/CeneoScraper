@@ -1,4 +1,29 @@
-{% extends "base.html.jinja" %}
+{% extends "layout.html.jinja" %}
+{% block sidebar %}
+    <h2>{{product_id}}</h2>
+    <ul class="list-group">
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            Liczba opinii
+            <span class="badge bg-primary rounded-pill">{{stats['reviews_count']}}</span>
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            Liczba opinii z listą zalet
+            <span class="badge bg-success rounded-pill">{{stats['pros_count']}}</span>
+        </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+            Liczba opinii z listą wad
+            <span class="badge bg-danger rounded-pill">{{stats['cons_count']}}</span>
+        </li>
+        </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+            Średnia ocena produktu
+            <span class="badge bg-info rounded-pill">{{stats['product_rating']}}</span>
+        </li>
+    </ul>
+    <img src="/static/plots/{{product_id}}_recommendation.png" class="img-fluid">
+{% endblock %}
 {% block content %}
-    <p>{{product_id}}</p>
-{% endblock content %}
+    {% for table in tables %}
+        {{ table|safe }}
+    {% endfor %}
+{% endblock %}
