@@ -1,13 +1,7 @@
 # CeneoWebScraperN11
 ## Requirements
 ```
-pip install -python
-pip install -flask
-pip install -pandas
-pip install -matplotlib
-pip install -markdown
-pip install -bs4
-
+pip install -r requirements.txt
 ```
 ## Work Log
 1) pobranie skladowych pojedynczej opinii do niezaleznych zmiennych<br>
